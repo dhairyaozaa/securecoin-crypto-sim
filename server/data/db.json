@@ -1,0 +1,20 @@
+{
+  "users": [],
+  "blocks": [
+    {
+      "height": 1,
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "txs": [],
+      "miner": "GENESIS",
+      "nonce": 0,
+      "ts": 1778612723811,
+      "difficulty": 0,
+      "reward": 0,
+      "hash": "d7d7fecaeef58228d1268ac2a8ec29e6c63b5f912eea2bab58e0b0ffe5de8f2f"
+    }
+  ],
+  "mempool": [],
+  "stats": {
+    "totalTx": 0
+  }
+}

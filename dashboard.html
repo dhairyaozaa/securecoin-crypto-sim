@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureCoin · Dashboard</title>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Lava-lamp background -->
+<div class="bg-layer" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="blob blob-5"></div>
+  <div class="noise-layer"></div>
+</div>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ══════════════════════════════════════
+     MINING OVERLAY (real-time PoW)
+══════════════════════════════════════ -->
+<div class="mining-overlay" id="mining-overlay" role="dialog" aria-modal="true" aria-label="Mining in progress">
+  <div class="mining-modal">
+
+    <!-- SVG gradient defs -->
+    <svg width="0" height="0" style="position:absolute"><defs>
+      <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#ec4899"/>
+      </linearGradient>
+    </defs></svg>
+
+    <div class="mining-content">
+      <div class="mine-header">
+        <div class="mine-glyph" aria-hidden="true">⛏</div>
+        <div class="mine-title">Mining Block</div>
+        <div class="mine-sub">Finding a valid Proof-of-Work hash…</div>
+      </div>
+
+      <!-- Progress ring -->
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="ring-bg" cx="50" cy="50" r="44"/>
+          <circle class="ring-fg" id="mine-ring-progress" cx="50" cy="50" r="44"/>
+        </svg>
+      </div>
+
+      <!-- Live stats -->
+      <div class="mine-stats">
+        <div class="mine-stat">
+          <div class="mine-stat-label">Nonce</div>
+          <div class="mine-stat-val" id="mine-nonce">0</div>
+        </div>
+        <div class="mine-stat">
+          <div class="mine-stat-label">Hash rate</div>
+          <div class="mine-stat-val" id="mine-rate">—</div>
+        </div>
+        <div class="mine-stat">
+          <div class="mine-stat-label">Elapsed</div>
+          <div class="mine-stat-val" id="mine-elapsed">0s</div>
+        </div>
+        <div class="mine-stat">
+          <div class="mine-stat-label">Difficulty</div>
+          <div class="mine-stat-val" id="mine-diff-disp">4 zeros</div>
+        </div>
+      </div>
+
+      <!-- Live hash -->
+      <div class="mine-hash-wrap">
+        <div class="mine-hash-label">Current hash attempt</div>
+        <div id="mine-hash" class="mono" aria-live="off">—</div>
+        <div id="mine-target" aria-live="off">Target: 0000…</div>
+      </div>
+
+      <p style="font-size:12px;color:rgba(255,255,255,.3);text-align:center">
+        Real SHA-256 Proof-of-Work · Network difficulty adjusts every 5 blocks
+      </p>
+    </div><!-- /mining-content -->
+
+    <!-- Block found! -->
+    <div class="found-overlay" aria-live="assertive">
+      <div class="found-glyph">✓</div>
+      <div class="found-title">Block Mined!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:1rem">You earned 12.5 SRC block reward</div>
+      <div class="found-details">
+        <div class="found-detail"><div class="fd-label">Block</div><div class="fd-val" id="mine-found-height">—</div></div>
+        <div class="found-detail"><div class="fd-label">Time</div><div class="fd-val" id="mine-found-time">—</div></div>
+        <div class="found-detail"><div class="fd-label">Nonce</div><div class="fd-val" id="mine-found-nonce">—</div></div>
+        <div class="found-detail"><div class="fd-label">Hash</div><div class="fd-val mono" id="mine-found-hash" style="font-size:10px">—</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav class="navbar glass" role="navigation" aria-label="Main navigation">
+  <div class="nav-brand">
+    <span class="coin-glyph" aria-hidden="true">◈</span>
+    <span class="brand">SecureCoin</span>
+    <span class="ticker">SRC</span>
+  </div>
+
+  <div class="nav-center">
+    <div class="net-dot-wrap">
+      <div class="dot offline" id="connection-dot" aria-hidden="true"></div>
+      <span class="net-label" id="connection-label">Connecting…</span>
+    </div>
+    <div class="online-pill">
+      <span id="online-count">0</span> online · <span id="online-list" style="color:rgba(255,255,255,.4)">—</span>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <div class="user-chip" role="status" aria-label="Logged in user">
+      <div class="u-av" id="nav-user-avatar" aria-hidden="true">?</div>
+      <span class="u-name" id="nav-username">—</span>
+    </div>
+    <button class="btn-icon" id="logout-btn" title="Sign out" aria-label="Sign out">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     MAIN
+══════════════════════════════════════ -->
+<main id="main">
+
+  <!-- ── Wallet + Stats bar ── -->
+  <section class="reveal" aria-labelledby="wallet-heading">
+    <div class="wallet-bar">
+      <div class="balance-card" role="status" aria-label="Your wallet">
+        <div class="bal-label">Your balance</div>
+        <div>
+          <span class="bal-amount" id="user-balance">—</span>
+          <span class="bal-ticker"> SRC</span>
+        </div>
+        <div class="addr-row">
+          <span class="addr-val mono" id="user-addr" title="Your wallet address">—</span>
+          <button class="copy-btn" id="copy-addr-btn" title="Copy address" aria-label="Copy wallet address">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Chain height</div>
+          <div class="stat-value" id="stat-blocks">1</div>
+          <div class="stat-sub">blocks confirmed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Mempool</div>
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-sub">pending transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Difficulty</div>
+          <div class="stat-value" id="stat-difficulty">4</div>
+          <div class="stat-sub">leading zeros required</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total TX</div>
+          <div class="stat-value" id="stat-totaltx">0</div>
+          <div class="stat-sub">all time</div>
+        </div>
+        <div class="stat-card" style="grid-column:span 2">
+          <div class="stat-label">Latest block</div>
+          <div class="stat-value mono" id="stat-last-hash" style="font-size:12px;letter-spacing:0">—</div>
+          <div class="stat-sub">miner: <span id="stat-last-miner">—</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Send + Visualizer ── -->
+  <section class="reveal" aria-labelledby="send-heading">
+    <div class="section-head">
+      <h2 class="section-title" id="send-heading">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send SRC
+      </h2>
+      <span style="font-size:12px;color:rgba(255,255,255,.3)">Ctrl+Enter to broadcast</span>
+    </div>
+
+    <div class="send-grid">
+      <!-- Form -->
+      <div class="panel">
+        <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label>To wallet</label>
+            <div id="to-dropdown"></div>
+          </div>
+          <div class="form-group" style="width:150px">
+            <label>Amount (SRC)</label>
+            <input type="number" id="amount-input" value="10" min="0.01" step="0.01" aria-label="Amount in SRC"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Memo <span class="optional">optional</span></label>
+          <input type="text" id="memo-input" placeholder="e.g. payment for services" maxlength="80"/>
+        </div>
+
+        <div class="fee-row">
+          <span>Network fee (0.1%)</span>
+          <span class="fee-val" id="fee-display">—</span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary ripple" id="send-btn" aria-label="Broadcast transaction">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Broadcast
+          </button>
+          <button class="btn-secondary ripple" id="mine-btn" aria-label="Mine a new block">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Mine block
+          </button>
+        </div>
+
+        <!-- How-to note -->
+        <div style="margin-top:1.25rem;padding:10px 14px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);border-radius:12px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.7">
+          <strong style="color:rgba(0,212,255,.7)">How it works:</strong><br/>
+          Transactions are signed with SHA-256 and broadcast to the mempool.
+          Mining performs real Proof-of-Work (finding a hash with N leading zeros).
+          The miner earns a <strong style="color:rgba(245,158,11,.8)">12.5 SRC</strong> block reward.
+          Difficulty increases every 5 blocks. All activity is broadcast to every connected user in real time.
+        </div>
+      </div>
+
+      <!-- Visualizer -->
+      <div class="viz-wrap">
+        <div class="viz-head">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Transaction visualizer
+        </div>
+        <canvas id="tx-canvas" aria-label="Real-time transaction animation"></canvas>
+        <div style="padding:.6rem 1rem;font-size:11px;color:rgba(255,255,255,.25);text-align:center;border-top:1px solid rgba(255,255,255,.05)">
+          Live animation · Signing → Broadcast → Propagation → Confirmed
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Network explorer ── -->
+  <section class="reveal" aria-labelledby="explorer-heading">
+    <div class="section-head">
+      <h2 class="section-title" id="explorer-heading">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Network
+      </h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <!-- Mempool -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Mempool
+          <span class="badge" id="mempool-badge" aria-label="pending transaction count">0</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:auto">Unconfirmed transactions</span>
+        </div>
+        <div id="mempool-list" class="tx-list" role="list" aria-label="Pending transactions"></div>
+      </div>
+
+      <!-- Block explorer -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Block explorer
+          <span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:auto">Click a block to expand</span>
+        </div>
+        <div id="chain-list" class="chain-list" role="list" aria-label="Blockchain blocks"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── History + Leaderboard ── -->
+  <section class="reveal" aria-labelledby="history-heading">
+    <div class="section-head">
+      <h2 class="section-title" id="history-heading">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity
+      </h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px">
+      <div class="panel">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="history-panel" role="tab" aria-selected="true">All transactions</button>
+          <button class="tab-btn" data-tab="my-tx-panel" role="tab" aria-selected="false">My activity</button>
+        </div>
+        <div id="history-panel" class="tab-panel active">
+          <div id="history-list" class="tx-list" role="list" aria-label="Transaction history"></div>
+        </div>
+        <div id="my-tx-panel" class="tab-panel">
+          <div id="my-tx-list" class="tx-list" role="list" aria-label="My transactions">
+            <div class="empty-state"><span class="empty-icon">◎</span><span>Your transactions appear here</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Leaderboard
+        </div>
+        <div id="leaderboard-list" role="list" aria-label="Richest wallets"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>SecureCoin · SRC v2 · Proof-of-Work blockchain</span>
+  <span class="mono" id="stat-last-hash-footer">genesis</span>
+</footer>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+<script src="js/config.js"></script>
+<script src="js/visualizer.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

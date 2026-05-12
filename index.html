@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureCoin · Login</title>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Lava-lamp background -->
+<div class="bg-layer" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="blob blob-5"></div>
+  <div class="noise-layer"></div>
+</div>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<main class="auth-page" role="main">
+  <div style="width:min(420px,100%)">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <span class="auth-glyph" aria-hidden="true">◈</span>
+      <div class="auth-brand">SecureCoin</div>
+      <div class="auth-tag">Proof-of-Work blockchain simulation</div>
+    </div>
+
+    <!-- Card -->
+    <div class="auth-card" role="region" aria-label="Authentication">
+
+      <!-- Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="login-form">Sign in</button>
+        <button class="auth-tab"        id="tab-signup" role="tab" aria-selected="false" aria-controls="signup-form">Create account</button>
+      </div>
+
+      <!-- ── Login Form ── -->
+      <form id="login-form" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <div id="login-error" class="error-box" role="alert" aria-live="assertive" style="display:none">
+          <span>⚠</span><span></span>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" autocomplete="username" placeholder="Enter your username" required/>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="login-password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="login-password" autocomplete="current-password" placeholder="Enter your password" required/>
+            <button type="button" class="toggle-pw" aria-label="Toggle password visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="login-btn" class="btn-primary btn-block ripple" style="margin-top:1.25rem">
+          <span class="btn-text">Sign in</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </form>
+
+      <!-- ── Signup Form ── -->
+      <form id="signup-form" class="hidden" role="tabpanel" aria-labelledby="tab-signup" novalidate>
+        <div id="signup-error" class="error-box" role="alert" aria-live="assertive" style="display:none">
+          <span>⚠</span><span></span>
+        </div>
+
+        <!-- Welcome bonus -->
+        <div class="bonus-pill" role="note">
+          <span>🎁</span>
+          <span>New accounts receive <strong>500 SRC</strong> to get started</span>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" autocomplete="username" placeholder="Choose a username (3–20 chars)" required minlength="3" maxlength="20"/>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signup-password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="signup-password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6"/>
+            <button type="button" class="toggle-pw" aria-label="Toggle password visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="strength-wrap"><div id="strength-bar"></div></div>
+          <span id="strength-label" style="font-size:11px"></span>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signup-password2">Confirm password</label>
+          <div class="pw-wrap">
+            <input type="password" id="signup-password2" autocomplete="new-password" placeholder="Repeat your password" required/>
+            <button type="button" class="toggle-pw" aria-label="Toggle confirm password visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="signup-btn" class="btn-primary btn-block ripple" style="margin-top:1.25rem">
+          <span class="btn-text">Create account</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </form>
+
+    </div><!-- /auth-card -->
+
+    <!-- Info strip -->
+    <p style="text-align:center;font-size:12px;color:rgba(255,255,255,.25);margin-top:1.5rem">
+      Secure SHA-256 hashing · Real Proof-of-Work · Simulated blockchain
+    </p>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
